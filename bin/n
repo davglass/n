@@ -200,6 +200,7 @@ install_node() {
       && cp -fr $dir/lib/node/* $PREFIX/lib/node
       if test -d $dir/lib/node_modules; then
         cp -fr $dir/lib/node_modules/* $PREFIX/lib/node_modules
+        npm config set prefix /usr/local/
       fi
   # install
   else
