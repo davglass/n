@@ -118,12 +118,16 @@ check_installed() {
       mkdir -p $dir/lib/node
       mkdir -p $dir/include/node
     fi
+    
+    if test -d $dir/include; then
+        cd $dir
+        cp -fR $PREFIX/include/node $dir/include
+        cp -f $PREFIX/bin/node-waf $dir/bin/node-waf
+        cp -fr $PREFIX/lib/node/wafadmin $dir/lib/node/wafadmin
+    fi
 
     cd $dir \
-      && cp -fR $PREFIX/include/node $dir/include \
-      && cp -f $PREFIX/bin/node $dir/bin/node \
-      && cp -f $PREFIX/bin/node-waf $dir/bin/node-waf \
-      && cp -fr $PREFIX/lib/node/wafadmin $dir/lib/node/wafadmin
+      && cp -f $PREFIX/bin/* $dir/bin/
     
     log "Converted $ver to an n version"
     display_versions
@@ -193,14 +197,21 @@ install_node() {
   local dir=$VERSIONS_DIR/$version
   if test -d $dir; then
     # TODO: refactor, this is lame
-    cd $dir \
-      && cp -fr $dir/include/node $PREFIX/include \
-      && cp -f $dir/bin/node $PREFIX/bin/node \
-      && cp -f $dir/bin/node-waf $PREFIX/bin/node-waf \
-      && cp -fr $dir/lib/node/* $PREFIX/lib/node
-      if test -d $dir/lib/node_modules; then
+    if test -d $dir/include; then
+        cd $dir \
+          && cp -fr $dir/include/node $PREFIX/include \
+          && cp -f $dir/bin/node $PREFIX/bin/node \
+          && cp -f $dir/bin/npm $PREFIX/bin/npm \
+          && cp -f $dir/bin/node-waf $PREFIX/bin/node-waf \
+          && cp -fr $dir/lib/node_modules/* $PREFIX/lib/node_modules \
+          && cp -fr $dir/lib/node/* $PREFIX/lib/node
+          if test -d $dir/lib/node_modules; then
+            cp -fr $dir/lib/node_modules/* $PREFIX/lib/node_modules
+          fi
+      else
+        cp -f $dir/bin/* $PREFIX/bin/
+        cp -fr $dir/lib/dtrace $PREFIX/lib/dtrace
         cp -fr $dir/lib/node_modules/* $PREFIX/lib/node_modules
-        npm config set prefix /usr/local/
       fi
   # install
   else
