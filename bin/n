@@ -144,7 +144,7 @@ check_installed() {
 
 display_versions() {
   check_current_version
-  for dir in `ls $VERSIONS_DIR/ | sort`; do
+  for dir in `ls $VERSIONS_DIR/ | sort -n -t . -k 2,3n`; do
     local version=${dir##*/}
     local config=`test -f $dir/.config && cat $dir/.config`
     if test "$version" = "$active"; then
