@@ -1,3 +1,5 @@
+I have made some modifications to the original version of n, this is the version that I
+run on my local machines. It's not publised to npm, it's just mine :)
 
 # n
 
