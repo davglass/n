@@ -221,10 +221,16 @@ install_node() {
         cp -fr $dir/lib/dtrace $PREFIX/lib/dtrace
         cp -fr $dir/lib/node_modules/* $PREFIX/lib/node_modules
       fi
+      if [ -x "$dir/bin/iojs" ]; then
+        rm $PREFIX/bin/iojs
+        rm $PREFIX/bin/node
+        cp $dir/bin/iojs $PREFIX/bin/iojs
+        ln -s $PREFIX/bin/iojs $PREFIX/bin/node
+      fi
   # install
   else
-    
-    local tarball="node-v$version.tar.gz"
+    local fork="node"
+    local tarball="$fork-v$version.tar.gz"
     local logpath="/tmp/n.log"
     if test "$SOURCE_URL" = ""; then
       SOURCE_URL=http://nodejs.org/dist/v$version/$tarball
@@ -237,6 +243,14 @@ install_node() {
     if test $? -gt 0; then
         echo "Failed to download tarball, trying a different url"
         SOURCE_URL=http://nodejs.org/dist/$tarball
+        echo "Fetching: $SOURCE_URL"
+        $GET "$SOURCE_URL" > $tarball
+    fi
+    if test $? -gt 0; then
+        echo "Failed to download tarball, trying a different url"
+        fork="iojs"
+        tarball="$fork-v$version.tar.gz"
+        SOURCE_URL=https://iojs.org/download/release/v$version/$tarball
         echo "Fetching: $SOURCE_URL"
         $GET "$SOURCE_URL" > $tarball
     fi
@@ -260,7 +274,7 @@ install_node() {
     mv joyent-node* node-v$version 2> /dev/null
     wait
 
-    cd "$N_PREFIX/n/node-v$version" && ./configure --prefix $VERSIONS_DIR/$version $config && make install
+    cd "$N_PREFIX/n/$fork-v$version" && ./configure --prefix $VERSIONS_DIR/$version $config && make install
     wait ##This was needed for /bin/dash on Ubuntu
 
     if ! test -n "$VERSIONS_DIR/$version/bin/"; then
@@ -382,6 +396,14 @@ list_versions() {
     | sort -u -k 1,1n -k 2,2n -k 3,3n -t . \
     | awk '{ print "  " $1 }'`
 
+  versions2=`$GET 2> /dev/null https://iojs.org/download/release \
+    | egrep -o '[0-9]+\.[0-9]+\.[0-9]+' \
+    | sort -u -k 1,1n -k 2,2n -k 3,3n -t . \
+    | awk '{ print "  " $1 }'`
+  for v in $versions2;
+  do
+    versions+=" $v"
+  done;
   for v in $versions;
   do
     if test "$active" = "$v"; then
